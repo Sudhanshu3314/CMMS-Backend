@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (to, name, token) => {
-    const link = `${process.env.FRONTEND_URL}verify-email/${token}`;
+    const link = `${process.env.FRONTEND_URL}/verify-email/${token}`;
     const mailOptions = {
         from: `Chai GPT <${process.env.EMAIL_USER}>`,
         to,
