@@ -1,3 +1,4 @@
+// index.js
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
@@ -6,22 +7,22 @@ const cron = require("node-cron");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+require("dotenv").config(); // ensure env is loaded
+require("./models/dBase");    // your mongoose connection file
+const cloudinary = require("./Config/cloudinary"); // ensure config is initialized
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const Lunch = require("./models/lunchModel");
-const User = require("./models/userModel");
 const Dinner = require("./models/dinnerModel");
+const User = require("./models/userModel");
 
 const lunchRouter = require("./routes/lunchRoutes");
 const authRouter = require("./routes/authRoutes");
 const dinnerRouter = require("./routes/dinnerRoutes");
 const userRouter = require("./routes/userRoutes");
 
-require("./models/dBase");
-
-require("dotenv").config();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
@@ -37,7 +38,7 @@ app.get("/", (req, res) => {
     res.send("Server is working!");
 });
 
-// CRON JOB — runs every day at 9:01 AM IST to mark "yes" for *today*
+// CRON JOBS (unchanged)
 cron.schedule("1 9 * * *", async () => {
     try {
         const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
@@ -51,17 +52,16 @@ cron.schedule("1 9 * * *", async () => {
                     name: user.name,
                     email: user.email,
                     date: today,
-                    status: "yes"
+                    status: "yes",
                 });
             }
         }
-        console.log(`[CRON] yes entries added for ${today}`);
+        console.log(`[CRON] Lunch 'yes' entries added for ${today}`);
     } catch (err) {
-        console.error("[CRON ERROR]", err);
+        console.error("[CRON ERROR - Lunch]", err);
     }
 });
 
-// CRON JOB — Dinner yes at 4:01 PM IST
 cron.schedule("1 16 * * *", async () => {
     try {
         const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
@@ -75,16 +75,14 @@ cron.schedule("1 16 * * *", async () => {
                     name: user.name,
                     email: user.email,
                     date: today,
-                    status: "yes"
+                    status: "yes",
                 });
             }
         }
-        console.log(`[CRON] Dinner yes entries added for ${today}`);
+        console.log(`[CRON] Dinner 'yes' entries added for ${today}`);
     } catch (err) {
         console.error("[CRON ERROR - Dinner]", err);
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

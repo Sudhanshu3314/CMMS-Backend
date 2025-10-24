@@ -1,3 +1,4 @@
+// Middlewares/AuthValidation.js
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 
@@ -41,6 +42,7 @@ const verifyToken = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // The rest of your code expects req.user.id, so keep the same shape
         req.user = decoded; // decoded contains { id, email, ... }
         next();
     } catch (err) {

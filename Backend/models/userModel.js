@@ -1,4 +1,4 @@
-const { required } = require("joi");
+// models/userModel.js
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -11,9 +11,13 @@ const UserSchema = new Schema(
         verificationToken: String,
         resetToken: String,
         resetTokenExpiry: Date,
+
+        // profile photo url
         profilePhoto: { type: String, default: "" },
 
-        // Membership as string
+        // cloudinary public_id for easier deletion/updating
+        profilePhotoId: { type: String, default: "" },
+
         membershipActive: {
             type: String,
             enum: ["Active", "Inactive"],
@@ -24,5 +28,4 @@ const UserSchema = new Schema(
     { timestamps: true }
 );
 
-const UserModel = mongoose.model("User", UserSchema);
-module.exports = UserModel;
+module.exports = mongoose.model("User", UserSchema);
