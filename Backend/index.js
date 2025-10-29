@@ -23,16 +23,26 @@ const authRouter = require("./routes/authRoutes");
 const dinnerRouter = require("./routes/dinnerRoutes");
 const userRouter = require("./routes/userRoutes");
 
+//Admin
+const adminRouter = require("./routes/adminRoutes");
+
+
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:1234', // Replace with your client's origin
+    credentials: true // Crucial: This tells the client that credentials can be sent.
+}));
 
 app.use("/auth", authRouter);
 app.use("/lunch", lunchRouter);
 app.use("/dinner", dinnerRouter);
 app.use("/user", userRouter);
+
+//For Admin
+app.use("/admin", adminRouter);
 
 app.get("/", (req, res) => {
     res.send("Server is working!");
