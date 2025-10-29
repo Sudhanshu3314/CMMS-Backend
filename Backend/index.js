@@ -32,7 +32,7 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors({
-    origin: 'http://localhost:1234', // Replace with your client's origin
+    origin: ["https://igidr-cmms.netlify.app", "http://localhost:1234"],
     credentials: true // Crucial: This tells the client that credentials can be sent.
 }));
 
