@@ -8,7 +8,7 @@ exports.getDinnerReport = async (req, res) => {
         const minutes = now.getMinutes();
 
         // 🔒 Allow only after 4:05 PM
-        if (hours < 16 || (hours === 16 && minutes < 5)) {
+        if (hours < 9 || (hours === 9 && minutes < 5)) {
             return res.status(400).json({
                 success: false,
                 message: "Dinner report available after 4:05 PM.",
