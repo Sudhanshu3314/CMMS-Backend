@@ -1,21 +1,29 @@
 const User = require("../models/userModel");
 const Dinner = require("../models/dinnerModel");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 exports.getDinnerReport = async (req, res) => {
     try {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
+        // ⏰ Use Asia/Kolkata timezone explicitly
+        const now = dayjs().tz("Asia/Kolkata");
+        const hours = now.hour();
+        const minutes = now.minute();
 
-        // 🔒 Allow only after 4:05 PM
+        // 🔒 Allow only after 4:05 PM (IST)
         if (hours < 9 || (hours === 9 && minutes < 5)) {
             return res.status(400).json({
                 success: false,
-                message: "Dinner report available after 4:05 PM.",
+                message: "Dinner report available after 4:05 PM (IST).",
+                currentServerTime: now.format("HH:mm"),
             });
         }
 
-        const today = new Date().toISOString().split("T")[0];
+        const today = now.format("YYYY-MM-DD");
 
         // 🟢 Step 1: Fetch all Active users
         const activeUsers = await User.find({ membershipActive: "Active" }).select(
@@ -34,8 +42,8 @@ exports.getDinnerReport = async (req, res) => {
             let status = "Yes"; // default Yes (for users with no record)
 
             if (dinner) {
-                if (dinner.status.toLowerCase() === "no") status = "No";
-                else if (dinner.status.toLowerCase() === "yes") status = "Yes";
+                if (dinner.status?.toLowerCase() === "no") status = "No";
+                else if (dinner.status?.toLowerCase() === "yes") status = "Yes";
             }
 
             return {
