@@ -7,8 +7,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const TIMEZONE = "Asia/Kolkata";
-const CUTOFF_HOUR = 16; // 4:00 PM hour
-const CUTOFF_MINUTE = 30; // 30 minutes
+const CUTOFF_HOUR = 16; // 4:00 PM cutoff
 
 // Middleware to check cutoff
 const checkBeforeCutoff = (req, res, next) => {
@@ -24,12 +23,9 @@ const checkBeforeCutoff = (req, res, next) => {
     if (targetDate.isAfter(now, "day")) return next();
 
     // If today → check time
-    if (
-        now.hour() > CUTOFF_HOUR ||
-        (now.hour() === CUTOFF_HOUR && now.minute() >= CUTOFF_MINUTE)
-    ) {
+    if (now.hour() > CUTOFF_HOUR || (now.hour() === CUTOFF_HOUR && now.minute() >= 0)) {
         return res.status(403).json({
-            message: "Dinner attendance closed for today. Must be submitted before 4:30 PM.",
+            message: "Dinner attendance closed for today. Must be submitted before 4:00 PM.",
             success: false
         });
     }
