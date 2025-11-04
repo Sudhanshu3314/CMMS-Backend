@@ -15,19 +15,19 @@ exports.getDinnerReport = async (req, res) => {
         const minutes = now.minute();
         const today = now.format("YYYY-MM-DD");
 
-        // 🔒 Allow only after 4:35 PM (IST)
+        // 🔒 Allow only after 7:00 AM (IST)
         // But after 6:00 AM next morning, lock again (reset daily)
-        const after435PM = hours > 16 || (hours === 16 && minutes >= 35);
+        const after435PM = hours > 7 || (hours === 7 && minutes >= 0);
         const after6AM = hours >= 6;
 
         // 🧠 Logic:
         // - From 00:00 → 5:59 AM = show "not available"
-        // - From 6:00 AM → 4:34 PM = show "not available"
-        // - From 4:35 PM → 11:59 PM = show report
+        // - From 6:00 AM → 6:59 AM = show "not available"
+        // - From 7:00 AM → 11:59 PM = show report
         if (!after435PM) {
             return res.status(400).json({
                 success: false,
-                message: "Dinner report available after 4:35 PM (IST).",
+                message: "Dinner report available after 7:00 AM (IST).",
                 currentServerTime: now.format("HH:mm"),
             });
         }
