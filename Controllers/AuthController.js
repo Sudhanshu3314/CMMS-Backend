@@ -8,6 +8,13 @@ const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match",
+            });
+        }
+
         if (!name || !email || !password) {
             return res.status(400).json({ message: "All fields are required", success: false });
         }
