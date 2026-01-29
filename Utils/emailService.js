@@ -13,16 +13,16 @@ const transporter = nodemailer.createTransport({
 const sendVerificationEmail = async (to, name, token) => {
     const link = `${process.env.FRONTEND_URL}/verify-email/${token}`;
     const mailOptions = {
-        from: `Chai GPT <${process.env.EMAIL_USER}>`,
+        from: `IGIDR Canteen Portal <${process.env.EMAIL_USER}>`,
         to,
-        subject: "Verify Your Email - Chai GPT",
+        subject: "Verify Your Email - IGIDR Canteen Portal",
         html: `
         <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 30px; color: #333;">
             <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1);">
                 
                 <!-- Header / Branding -->
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="margin: 0; font-size: 24px; color: #4CAF50;">Chai GPT ☕</h1>
+                    <h1 style="margin: 0; font-size: 24px; color: #4CAF50;">IGIDR Canteen Portal ☕</h1>
                     <p style="margin: 5px 0 0; font-size: 14px; color: #666;">Canteen Meal Management System</p>
                 </div>
 
@@ -60,7 +60,7 @@ const sendVerificationEmail = async (to, name, token) => {
                     If you didn’t sign up, you can safely ignore this email.
                 </p>
                 <p style="font-size: 12px; color: #bbb; text-align: center; margin-top: 20px;">
-                    &copy; ${new Date().getFullYear()} Chai GPT · All rights reserved
+                    &copy; ${new Date().getFullYear()} IGIDR Canteen Portal · All rights reserved
                 </p>
             </div>
         </div>

@@ -50,7 +50,7 @@ exports.requestReset = async (req, res) => {
 
         // 6️⃣ Email content
         const mailOptions = {
-            from: `"Chai GPT" <${process.env.EMAIL_USER}>`,
+            from: `"IGIDR Canteen Portal" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "🔑 Password Reset Request",
             html: `
@@ -72,7 +72,7 @@ exports.requestReset = async (req, res) => {
           letter-spacing: 0.5px; 
           margin-bottom: 20px;
       ">
-        🔐 Chai GPT Password Reset
+        🔐 IGIDR Canteen Portal Password Reset
       </h2>
 
       <!-- Greeting -->
@@ -114,7 +114,7 @@ exports.requestReset = async (req, res) => {
 
       <!-- Footer -->
       <p style="font-size: 13px; color: #888; text-align: center; margin: 0;">
-        &copy; ${new Date().getFullYear()} <strong>Chai GPT</strong> · All rights reserved
+        &copy; ${new Date().getFullYear()} <strong>IGIDR Canteen Portal</strong> · All rights reserved
       </p>
     </div>
   </div>
