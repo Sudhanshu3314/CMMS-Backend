@@ -56,7 +56,7 @@ const sendVerificationEmail = async (to, name, token) => {
                 <!-- Footer -->
                 <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.5;">
                     You’re receiving this email because you signed up at 
-                    <a href="https://igidr-cmms.netlify.app" target="_blank" style="color: #4CAF50; text-decoration: none;">igidr-cmms.netlify.app</a>. <br />
+                    <a href="${process.env.FRONTEND_URL}" target="_blank" style="color: #4CAF50; text-decoration: none;">${process.env.FRONTEND_URL}</a>. <br />
                     If you didn’t sign up, you can safely ignore this email.
                 </p>
                 <p style="font-size: 12px; color: #bbb; text-align: center; margin-top: 20px;">
