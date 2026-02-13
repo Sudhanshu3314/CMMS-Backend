@@ -4,39 +4,48 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const User = require("../models/userModel");
 
+const getISTTime = () =>
+    new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
 exports.requestReset = async (req, res) => {
     try {
+        console.log(`🕒 [${getISTTime()}] 🔔 Password reset request received`);
+
         const { email } = req.body;
 
         if (!email) {
+            console.log(`🕒 [${getISTTime()}] ❌ Email not provided`);
             return res.status(400).json({ success: false, message: "Email is required" });
         }
 
-        // 1️⃣ Check if user exists
+        console.log(`🕒 [${getISTTime()}] 🔍 Checking user existence for email: ${email}`);
+
         const user = await User.findOne({ email });
         if (!user) {
+            console.log(`🕒 [${getISTTime()}] ❌ No account found for email: ${email}`);
             return res.status(404).json({ success: false, message: "No account found with this email." });
         }
 
-        // 2️⃣ Generate secure reset token + expiry (10 min)
+        console.log(`🕒 [${getISTTime()}] ✅ User found: ${user.email}`);
+
         const token = crypto.randomBytes(32).toString("hex");
         user.verificationToken = token;
-        user.resetTokenExpiry = Date.now() + 10 * 60 * 1000; // 10 mins validity
-        await user.save();
+        user.resetTokenExpiry = Date.now() + 10 * 60 * 1000;
 
-        // 3️⃣ Validate essential environment variables
+        await user.save();
+        console.log(`🕒 [${getISTTime()}] 🔐 Reset token generated & saved (expires in 10 mins)`);
+
         if (!process.env.FRONTEND_URL || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            console.error("❌ Missing required environment variables. Check .env file!");
+            console.error(`🕒 [${getISTTime()}] ❌ Missing ENV variables`);
             return res.status(500).json({
                 success: false,
                 message: "Server misconfiguration. Please contact admin.",
             });
         }
 
-        // 4️⃣ Reset password link
         const resetLink = `${process.env.FRONTEND_URL.replace(/\/$/, "")}/reset-password/${token}`;
+        console.log(`🕒 [${getISTTime()}] 🔗 Reset link generated`);
 
-        // 5️⃣ Configure mail transporter (Gmail)
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -45,16 +54,15 @@ exports.requestReset = async (req, res) => {
             },
         });
 
-        // ✅ Verify transporter before sending
+        console.log(`🕒 [${getISTTime()}] 📧 Verifying email transporter`);
         await transporter.verify();
+        console.log(`🕒 [${getISTTime()}] ✅ Email transporter verified`);
 
-        // 6️⃣ Email content
         const mailOptions = {
             from: `"IGIDR Canteen Portal" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "🔑 Password Reset Request",
-            html: `
-  <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f8; padding: 30px; margin: 0;">
+            html: `<div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f8; padding: 30px; margin: 0;">
     <div style="
         max-width: 600px; 
         margin: auto; 
@@ -117,14 +125,14 @@ exports.requestReset = async (req, res) => {
         &copy; ${new Date().getFullYear()} <strong>IGIDR Canteen Portal</strong> · All rights reserved
       </p>
     </div>
-  </div>
-`,
-
+  </div>`,
         };
 
-        // 7️⃣ Send email
+        console.log(`🕒 [${getISTTime()}] 📤 Sending reset email`);
         const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Reset email sent successfully to ${email}: ${info.response}`);
+
+        console.log(`🕒 [${getISTTime()}] ✅ Reset email sent to ${email}`);
+        console.log(`🕒 [${getISTTime()}] 📩 Mail response: ${info.response}`);
 
         return res.status(200).json({
             success: true,
@@ -132,7 +140,7 @@ exports.requestReset = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ requestReset error:", error);
+        console.error(`🕒 [${getISTTime()}] ❌ requestReset error:`, error);
         return res.status(500).json({
             success: false,
             message: error.message || "Failed to send reset email. Please try again.",
@@ -143,35 +151,43 @@ exports.requestReset = async (req, res) => {
 // ✅ Reset Password API
 exports.resetPassword = async (req, res) => {
     try {
+        console.log(`🕒 [${getISTTime()}] 🔁 Reset password attempt`);
+
         const { token } = req.params;
         const { newPassword } = req.body;
 
         if (!token) {
+            console.log(`🕒 [${getISTTime()}] ❌ Reset token missing`);
             return res.status(400).json({ success: false, message: "Missing token." });
         }
 
         if (!newPassword) {
+            console.log(`🕒 [${getISTTime()}] ❌ New password not provided`);
             return res.status(400).json({ success: false, message: "New password is required." });
         }
 
-        // 1️⃣ Find user with valid token (not expired)
+        console.log(`🕒 [${getISTTime()}] 🔍 Validating reset token`);
+
         const user = await User.findOne({
             verificationToken: token,
             resetTokenExpiry: { $gt: Date.now() },
         });
 
         if (!user) {
+            console.log(`🕒 [${getISTTime()}] ❌ Invalid or expired reset token`);
             return res.status(400).json({ success: false, message: "Invalid or expired reset link." });
         }
 
-        // 2️⃣ Hash and update password securely
+        console.log(`🕒 [${getISTTime()}] ✅ Token verified for ${user.email}`);
+
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         user.verificationToken = null;
         user.resetTokenExpiry = null;
+
         await user.save();
 
-        console.log(` Password reset successful for ${user.email}`);
+        console.log(`🕒 [${getISTTime()}] 🔐 Password reset successful for ${user.email}`);
 
         return res.status(200).json({
             success: true,
@@ -179,7 +195,7 @@ exports.resetPassword = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ resetPassword error:", error);
+        console.error(`🕒 [${getISTTime()}] ❌ resetPassword error:`, error);
         return res.status(500).json({
             success: false,
             message: error.message || "Internal server error during password reset.",

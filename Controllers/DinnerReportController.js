@@ -15,16 +15,29 @@ exports.getDinnerReport = async (req, res) => {
         const minutes = now.minute();
         const today = now.format("YYYY-MM-DD");
 
+        // 🧾 LOG: request received
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 📥 GET /dinner/report request`
+        );
+
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] ⏰ Server time → ${hours}:${minutes}`
+        );
+
         // 🔒 Allow only after 7:00 AM (IST)
-        // But after 6:00 AM next morning, lock again (reset daily)
         const after435PM = hours > 7 || (hours === 7 && minutes >= 0);
         const after6AM = hours >= 6;
 
-        // 🧠 Logic:
-        // - From 00:00 → 5:59 AM = show "not available"
-        // - From 6:00 AM → 6:59 AM = show "not available"
-        // - From 7:00 AM → 11:59 PM = show report
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 🔎 after435PM=${after435PM}, after6AM=${after6AM}`
+        );
+
+        // 🚫 Before 7:00 AM
         if (!after435PM) {
+            console.log(
+                `[${now.format("YYYY-MM-DD HH:mm:ss")} ] ⛔ Dinner report blocked (before 7:00 AM)`
+            );
+
             return res.status(400).json({
                 success: false,
                 message: "Dinner report available after 7:00 AM (IST).",
@@ -32,13 +45,29 @@ exports.getDinnerReport = async (req, res) => {
             });
         }
 
-        // 🟢 Step 1: Fetch all Active users
+        // 🟢 Step 1: Fetch active users
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 👥 Fetching active users`
+        );
+
         const activeUsers = await User.find({ membershipActive: "Active" }).select(
             "name email profilePhoto _id"
         );
 
-        // 🟢 Step 2: Fetch Dinner data for today
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] ✅ Active users count: ${activeUsers.length}`
+        );
+
+        // 🟢 Step 2: Fetch dinner data
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 🍽️ Fetching dinner data for ${today}`
+        );
+
         const dinnerData = await Dinner.find({ date: today });
+
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 📊 Dinner records found: ${dinnerData.length}`
+        );
 
         // 🟢 Step 3: Combine logic
         const report = activeUsers.map((user, index) => {
@@ -46,7 +75,7 @@ exports.getDinnerReport = async (req, res) => {
                 (d) => d.userId.toString() === user._id.toString()
             );
 
-            let status = "Yes"; // default Yes (for users with no record)
+            let status = "Yes";
 
             if (dinner) {
                 if (dinner.status?.toLowerCase() === "no") status = "No";
@@ -62,12 +91,23 @@ exports.getDinnerReport = async (req, res) => {
             };
         });
 
+        console.log(
+            `[${now.format("YYYY-MM-DD HH:mm:ss")} ] 📤 Dinner report generated successfully`
+        );
+
         return res.status(200).json({
             success: true,
             report,
         });
     } catch (error) {
-        console.error("Error generating dinner report:", error);
-        res.status(500).json({ success: false, message: "Server error." });
+        console.error(
+            `[${dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss")} ] ❌ Error generating dinner report`,
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Server error.",
+        });
     }
 };

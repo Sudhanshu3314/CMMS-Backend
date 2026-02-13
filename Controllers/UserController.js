@@ -4,6 +4,13 @@ const cloudinary = require("../Config/cloudinary");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
+// 🕒 IST time helper
+const istTime = () =>
+    new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour12: false,
+    });
+
 // ✅ Cloudinary storage configuration for multer-storage-cloudinary
 const storage = new CloudinaryStorage({
     cloudinary,
@@ -21,21 +28,38 @@ const upload = multer({
 
 // 🔹 Toggle Membership
 exports.toggleMembership = async (req, res) => {
+    console.log(`[${istTime()}] ➡️ TOGGLE MEMBERSHIP`);
+    console.log(`[${istTime()}] 👤 User ID:`, req.user?.id);
+
     try {
         const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        user.membershipActive = user.membershipActive === "Active" ? "Inactive" : "Active";
+        if (!user) {
+            console.warn(`[${istTime()}] ⚠️ User not found`);
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        user.membershipActive =
+            user.membershipActive === "Active" ? "Inactive" : "Active";
+
         await user.save();
+
+        console.log(
+            `[${istTime()}] ✅ Membership status updated to:`,
+            user.membershipActive
+        );
 
         return res.json({
             success: true,
-            message: `Membership ${user.membershipActive === "Active" ? "Activated" : "Deactivated"} Successfully`,
+            message: `Membership ${user.membershipActive === "Active" ? "Activated" : "Deactivated"
+                } Successfully`,
             membershipActive: user.membershipActive,
         });
     } catch (error) {
-        console.error("Membership toggle error:", error);
-        res.status(500).json({ success: false, message: "Server error while toggling membership" });
+        console.error(`[${istTime()}] ❌ Membership toggle error:`, error);
+        res
+            .status(500)
+            .json({ success: false, message: "Server error while toggling membership" });
     }
 };
 
@@ -44,33 +68,50 @@ exports.toggleMembership = async (req, res) => {
 exports.uploadPhoto = [
     upload.single("photo"),
     async (req, res) => {
+        console.log(`[${istTime()}] ➡️ UPLOAD PROFILE PHOTO`);
+        console.log(`[${istTime()}] 👤 User ID:`, req.user?.id);
+
         try {
-            // multer-storage-cloudinary attaches file information at req.file
             if (!req.file) {
-                return res.status(400).json({ success: false, message: "No file uploaded" });
+                console.warn(`[${istTime()}] ⚠️ No file uploaded`);
+                return res
+                    .status(400)
+                    .json({ success: false, message: "No file uploaded" });
             }
 
             const user = await User.findById(req.user.id);
-            if (!user) return res.status(404).json({ success: false, message: "User not found" });
+            if (!user) {
+                console.warn(`[${istTime()}] ⚠️ User not found`);
+                return res
+                    .status(404)
+                    .json({ success: false, message: "User not found" });
+            }
 
             // Delete previous image from Cloudinary if exists
             if (user.profilePhotoId) {
                 try {
-                    await cloudinary.uploader.destroy(user.profilePhotoId, { invalidate: true });
+                    console.log(
+                        `[${istTime()}] 🗑️ Deleting previous Cloudinary image`
+                    );
+                    await cloudinary.uploader.destroy(user.profilePhotoId, {
+                        invalidate: true,
+                    });
                 } catch (delErr) {
-                    // log but don't block the upload
-                    console.warn("Failed to delete previous Cloudinary image:", delErr.message || delErr);
+                    console.warn(
+                        `[${istTime()}] ⚠️ Failed to delete previous image:`,
+                        delErr.message || delErr
+                    );
                 }
             }
 
-            // Save new photo info from multer-storage-cloudinary (req.file)
-            // multer-storage-cloudinary sets:
-            //  - req.file.path   -> the uploaded file URL (secure_url)
-            //  - req.file.filename -> the public_id
+            // Save new photo info
             user.profilePhoto = req.file.path || req.file.url || "";
-            user.profilePhotoId = req.file.filename || req.file.public_id || "";
+            user.profilePhotoId =
+                req.file.filename || req.file.public_id || "";
 
             await user.save();
+
+            console.log(`[${istTime()}] ✅ Profile photo updated successfully`);
 
             return res.json({
                 success: true,
@@ -79,8 +120,10 @@ exports.uploadPhoto = [
                 photoId: user.profilePhotoId,
             });
         } catch (error) {
-            console.error("Photo upload error:", error);
-            res.status(500).json({ success: false, message: "Server error while uploading photo" });
+            console.error(`[${istTime()}] ❌ Photo upload error:`, error);
+            res
+                .status(500)
+                .json({ success: false, message: "Server error while uploading photo" });
         }
     },
 ];
